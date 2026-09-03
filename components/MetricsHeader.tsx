@@ -1,7 +1,7 @@
 'use client'
 
 import { formatEur, formatPct } from '@/lib/finance'
-import { TrendingUp, TrendingDown, Wallet, PiggyBank, BarChart3, Percent } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, PiggyBank, BarChart3, Plus } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
 
 type Props = {
@@ -20,7 +20,6 @@ export function MetricsHeader({
   totalDeposited,
   globalGainEur,
   globalGainPct,
-  irr,
   onDeposit,
 }: Props) {
   const { t } = useLanguage()
@@ -46,9 +45,10 @@ export function MetricsHeader({
           </div>
           <button
             onClick={onDeposit}
-            className="text-xs bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-semibold px-2.5 py-1 rounded-full transition"
+            className="flex items-center justify-center bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 p-1.5 rounded-full transition"
+            title="Dépôt / Retrait"
           >
-            + {t.metrics.deposit} / {t.metrics.withdraw}
+            <Plus size={18} />
           </button>
         </div>
         <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-50">{formatEur(cashBalance)}</div>
@@ -90,12 +90,6 @@ export function MetricsHeader({
           >
             {formatPct(globalGainPct)}
           </span>
-          {irr !== null && (
-            <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-              <Percent size={12} />
-              {t.metrics.irr}: {irr.toFixed(1)}%
-            </span>
-          )}
         </div>
       </div>
     </div>

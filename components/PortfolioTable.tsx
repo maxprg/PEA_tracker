@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { HoldingMetrics, formatEur, formatPct } from '@/lib/finance'
-import { TrendingUp, TrendingDown, ShoppingCart, ArrowUpFromLine, Info, ChevronUp, ChevronDown } from 'lucide-react'
+import { TrendingUp, TrendingDown, ShoppingCart, ArrowUpFromLine, Info, ChevronUp, ChevronDown, HelpCircle } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
 
 type SortCol = 'shares' | 'pru' | 'currentPrice' | 'lineValue' | 'weight' | 'latentGainPct' | 'changePercent'
@@ -38,14 +38,25 @@ export function PortfolioTable({ holdings, totalValue, onBuyMore, onSell, onDeta
     [holdings, sort]
   )
 
-  function th(label: string, col: SortCol) {
+  const handlePruInfo = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    alert("PRU (Prix de Revient Unitaire) : Il s'agit du prix d'achat moyen de vos actions, incluant les frais de courtage.")
+  }
+
+  function th(label: string, col: SortCol, withInfo?: boolean) {
     return (
       <th
         className="text-right px-4 py-3.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 select-none"
         onClick={() => toggleSort(col)}
       >
         <span className="inline-flex items-center gap-1 justify-end">
-          {label} <SortIcon col={col} sort={sort} />
+          {label} 
+          {withInfo && (
+            <button onClick={handlePruInfo} className="text-gray-400 hover:text-blue-500 transition ml-0.5">
+              <HelpCircle size={14} />
+            </button>
+          )}
+          <SortIcon col={col} sort={sort} />
         </span>
       </th>
     )
@@ -91,7 +102,13 @@ export function PortfolioTable({ holdings, totalValue, onBuyMore, onSell, onDeta
               
               <div className="grid grid-cols-2 gap-3 text-sm py-2 border-y border-gray-50 dark:border-gray-800/50">
                 <div>
-                  <div className="text-xs text-gray-400 dark:text-gray-500">{t.portfolio.pru} / {t.portfolio.quote}</div>
+                  <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                    {t.portfolio.pru} 
+                    <button onClick={handlePruInfo} className="text-gray-400 hover:text-blue-500 transition">
+                      <HelpCircle size={12} />
+                    </button>
+                    / {t.portfolio.quote}
+                  </div>
                   <div className="font-medium text-gray-700 dark:text-gray-300">
                     {formatEur(h.pru)} <span className="text-gray-300 dark:text-gray-600">/</span> {h.currentPrice > 0 ? formatEur(h.currentPrice) : '—'}
                   </div>
@@ -134,7 +151,7 @@ export function PortfolioTable({ holdings, totalValue, onBuyMore, onSell, onDeta
                   {t.portfolio.asset}
                 </th>
                 {th(t.common.shares, 'shares')}
-                {th(t.portfolio.pru, 'pru')}
+                {th(t.portfolio.pru, 'pru', true)}
                 {th(t.portfolio.quote, 'currentPrice')}
                 {th(t.portfolio.value, 'lineValue')}
                 {th(t.portfolio.weight, 'weight')}

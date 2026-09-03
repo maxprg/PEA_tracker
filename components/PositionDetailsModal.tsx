@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { X, TrendingUp, TrendingDown } from 'lucide-react'
+import { X, TrendingUp, TrendingDown, HelpCircle } from 'lucide-react'
 import { HoldingMetrics, formatEur } from '@/lib/finance'
 import { Transaction } from '@/lib/db'
 import { useLanguage } from './LanguageProvider'
@@ -80,7 +80,12 @@ export function PositionDetailsModal({ holding, transactions, onClose, onUpdate 
             <div className="font-bold text-gray-900 dark:text-gray-100">{holding.shares.toFixed(4)}</div>
           </div>
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 border border-transparent dark:border-gray-800">
-            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t.positionModal.avgPRU}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1">
+              {t.positionModal.avgPRU}
+              <button onClick={() => alert("PRU (Prix de Revient Unitaire) : Il s'agit du prix d'achat moyen de vos actions, incluant les frais de courtage.")} className="text-gray-400 hover:text-blue-500 transition">
+                <HelpCircle size={12} />
+              </button>
+            </div>
             <div className="font-bold text-gray-900 dark:text-gray-100">{formatEur(holding.pru)}</div>
           </div>
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 border border-transparent dark:border-gray-800">
