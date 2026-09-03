@@ -65,12 +65,8 @@ export function getDb(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_cash_flows_date ON cash_flows(date);
   `)
 
-  // Safe migration: add notes column to assets if it doesn't exist
-  try {
-    _db.exec(`ALTER TABLE assets ADD COLUMN notes TEXT`)
-  } catch {
-    // Column already exists — ignore
-  }
+  // Safe migration: add notes column to assets if not present
+  try { _db.exec(`ALTER TABLE assets ADD COLUMN notes TEXT`) } catch { /* already exists */ }
 
   return _db
 }

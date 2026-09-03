@@ -155,3 +155,4 @@ export async function removeFromWatchlist(id: string): Promise<void> {
   const res = await fetch(`/api/watchlist?id=${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(await res.text())
 }
+

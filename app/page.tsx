@@ -22,7 +22,11 @@ import { PortfolioTable } from '@/components/PortfolioTable'
 import { PositionDetailsModal } from '@/components/PositionDetailsModal'
 import { PriceChartModal } from '@/components/PriceChartModal'
 import { GestionSuivi } from '@/components/GestionSuivi'
-import { RefreshCw } from 'lucide-react'
+import { SimulationModal } from '@/components/SimulationModal'
+import { WatchlistTab } from '@/components/WatchlistTab'
+import { RefreshCw, TrendingUp } from 'lucide-react'
+import { useLanguage } from '@/components/LanguageProvider'
+import { ThemeLanguageToggle } from '@/components/ThemeLanguageToggle'
 
 type SearchResult = {
   ticker: string
@@ -31,11 +35,13 @@ type SearchResult = {
   quoteType: string
 }
 
-type Tab = 'portefeuille' | 'gestion'
+type Tab = 'portefeuille' | 'gestion' | 'watchlist'
 
 const QUOTES_REFRESH_INTERVAL = 30_000
 
 export default function HomePage() {
+  const { t } = useLanguage()
+
   // ─── Navigation ───────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<Tab>('portefeuille')
 
@@ -55,6 +61,7 @@ export default function HomePage() {
   const [cashFlowOpen, setCashFlowOpen] = useState(false)
   const [detailsHolding, setDetailsHolding] = useState<HoldingMetrics | null>(null)
   const [chartHolding, setChartHolding] = useState<HoldingMetrics | null>(null)
+  const [simulationOpen, setSimulationOpen] = useState(false)
 
   // ─── Load DB data ─────────────────────────────────────────
   const loadData = useCallback(async () => {
@@ -70,9 +77,7 @@ export default function HomePage() {
     }
   }, [])
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+  useEffect(() => { loadData() }, [loadData])
 
   // ─── Fetch live quotes ────────────────────────────────────
   const fetchQuotes = useCallback(async (tickers: string[]) => {
@@ -84,8 +89,7 @@ export default function HomePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tickers }),
       })
-      const data = await res.json()
-      setQuotes(data)
+      setQuotes(await res.json())
       setLastUpdated(new Date())
     } catch (err) {
       console.error('Erreur quotes:', err)
@@ -123,90 +127,84 @@ export default function HomePage() {
     const asset = assets.find((a) => a.id === holding.assetId)
     if (asset) {
       setBuyExistingHolding({ shares: holding.shares, pru: holding.pru })
-      setBuyAsset({
-        ticker: asset.ticker,
-        name: asset.name,
-        exchange: '',
-        quoteType: asset.category === 'ETF' ? 'ETF' : 'EQUITY',
-      })
+      setBuyAsset({ ticker: asset.ticker, name: asset.name, exchange: '', quoteType: asset.category === 'ETF' ? 'ETF' : 'EQUITY' })
     }
   }
 
-  function handleSell(holding: HoldingMetrics) {
-    setSellHolding({ holding, assetId: holding.assetId })
-  }
+  function handleSell(holding: HoldingMetrics) { setSellHolding({ holding, assetId: holding.assetId }) }
+  function handleDetails(holding: HoldingMetrics) { setDetailsHolding(holding) }
+  function handleChart(holding: HoldingMetrics) { setChartHolding(holding) }
 
-  function handleDetails(holding: HoldingMetrics) {
-    setDetailsHolding(holding)
-  }
-
-  function handleChart(holding: HoldingMetrics) {
-    setChartHolding(holding)
+  function handleWatchlistBuy(item: { ticker: string; name: string; exchange: string; quoteType: string }) {
+    setBuyExistingHolding(null)
+    setBuyAsset(item)
+    setActiveTab('portefeuille')
   }
 
   if (loadingData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
         <div className="flex flex-col items-center gap-3 text-gray-400">
           <RefreshCw size={32} className="animate-spin" />
-          <span className="text-sm">Chargement du portefeuille…</span>
+          <span className="text-sm">{t.common.loading}</span>
         </div>
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+      
       {/* ── Header ── */}
-      <header className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="text-xl font-bold text-gray-900">📈 PEA Tracker</span>
-          </div>
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-4">
+          <span className="text-xl font-bold shrink-0">📈 {t.header.title}</span>
 
           {/* Tabs */}
-          <nav className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
-            <button
-              onClick={() => setActiveTab('portefeuille')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition ${
-                activeTab === 'portefeuille'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Portefeuille
-            </button>
-            <button
-              onClick={() => setActiveTab('gestion')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition ${
-                activeTab === 'gestion'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Gestion & Suivi
-            </button>
+          <nav className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mx-auto overflow-x-auto">
+            {([
+              { key: 'portefeuille', label: t.header.portfolio },
+              { key: 'gestion', label: t.header.management },
+              { key: 'watchlist', label: `👁 ${t.header.watchlist}` },
+            ] as const).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition whitespace-nowrap ${
+                  activeTab === key 
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' 
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </nav>
 
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            {loadingQuotes && <RefreshCw size={12} className="animate-spin" />}
-            {lastUpdated && (
-              <span>
-                Mis à jour{' '}
-                {lastUpdated.toLocaleTimeString('fr-FR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                })}
-              </span>
-            )}
+          {/* Toggles & Simulation */}
+          <div className="flex items-center gap-3 shrink-0">
+            <ThemeLanguageToggle />
+            
+            <button
+              onClick={() => setSimulationOpen(true)}
+              className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 px-3 py-1.5 rounded-xl transition"
+            >
+              <TrendingUp size={14} /> {t.header.simulation}
+            </button>
+            <div className="flex items-center gap-1.5 text-xs text-gray-400">
+              {loadingQuotes && <RefreshCw size={12} className="animate-spin" />}
+              {lastUpdated && (
+                <span className="hidden lg:block">
+                  {lastUpdated.toLocaleTimeString(t === require('@/lib/i18n/dictionaries').en ? 'en-US' : 'fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
-        {/* ── Métriques (toujours visibles) ── */}
+        {/* ── Métriques ── */}
         <MetricsHeader
           totalPEAValue={totalPEAValue}
           cashBalance={cashBalance}
@@ -220,30 +218,26 @@ export default function HomePage() {
         {/* ── Tab: Portefeuille ── */}
         {activeTab === 'portefeuille' && (
           <>
-            {/* Barre de recherche */}
             <section>
               <div className="flex items-center gap-4 flex-wrap">
                 <SearchBar onSelect={handleSearchSelect} />
                 <p className="text-sm text-gray-400 hidden sm:block">
-                  Cherchez un ETF ou une action, cliquez pour enregistrer un achat
+                  {t.portfolio.searchPlaceholder}
                 </p>
               </div>
             </section>
-
-            {/* Tableau */}
             <section>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold text-gray-900">
-                  Lignes détenues{' '}
-                  <span className="text-gray-400 font-normal text-sm">({holdingMetrics.length})</span>
+                <h2 className="text-base font-semibold">
+                  {t.portfolio.holdings} <span className="text-gray-400 font-normal text-sm">({holdingMetrics.length})</span>
                 </h2>
                 <button
                   onClick={() => fetchQuotes(assets.map((a) => a.ticker))}
                   disabled={loadingQuotes}
-                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 transition"
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition"
                 >
                   <RefreshCw size={13} className={loadingQuotes ? 'animate-spin' : ''} />
-                  Actualiser les cours
+                  {t.header.refresh}
                 </button>
               </div>
               <PortfolioTable
@@ -268,6 +262,11 @@ export default function HomePage() {
             cashBalance={cashBalance}
             onRefresh={loadData}
           />
+        )}
+
+        {/* ── Tab: Watchlist ── */}
+        {activeTab === 'watchlist' && (
+          <WatchlistTab onBuy={handleWatchlistBuy} />
         )}
       </div>
 
@@ -299,6 +298,11 @@ export default function HomePage() {
         holding={chartHolding}
         transactions={transactions}
         onClose={() => setChartHolding(null)}
+      />
+      <SimulationModal
+        open={simulationOpen}
+        currentPortfolioValue={totalPEAValue}
+        onClose={() => setSimulationOpen(false)}
       />
     </main>
   )

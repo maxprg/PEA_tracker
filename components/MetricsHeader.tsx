@@ -2,6 +2,7 @@
 
 import { formatEur, formatPct } from '@/lib/finance'
 import { TrendingUp, TrendingDown, Wallet, PiggyBank, BarChart3, Percent } from 'lucide-react'
+import { useLanguage } from './LanguageProvider'
 
 type Props = {
   totalPEAValue: number
@@ -22,79 +23,77 @@ export function MetricsHeader({
   irr,
   onDeposit,
 }: Props) {
+  const { t } = useLanguage()
   const isPositive = globalGainEur >= 0
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {/* Valeur Totale PEA */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5 flex flex-col gap-2">
+        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium">
           <BarChart3 size={16} />
-          Valeur Totale du PEA
+          {t.metrics.totalValue}
         </div>
-        <div className="text-2xl font-bold text-gray-900">{formatEur(totalPEAValue)}</div>
-        <div className="text-xs text-gray-400">Titres + Espèces</div>
+        <div className="text-2xl font-bold text-gray-900 dark:text-gray-50">{formatEur(totalPEAValue)}</div>
       </div>
 
       {/* Solde Espèces */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-2">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5 flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium">
             <Wallet size={16} />
-            Solde Espèces
+            {t.metrics.cashBalance}
           </div>
           <button
             onClick={onDeposit}
-            className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold px-2.5 py-1 rounded-full transition"
+            className="text-xs bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-semibold px-2.5 py-1 rounded-full transition"
           >
-            + Déposer
+            + {t.metrics.deposit} / {t.metrics.withdraw}
           </button>
         </div>
-        <div className="text-2xl font-bold text-gray-900">{formatEur(cashBalance)}</div>
-        <div className="text-xs text-gray-400">Disponible pour investir</div>
+        <div className="text-2xl font-bold text-gray-900 dark:text-gray-50">{formatEur(cashBalance)}</div>
       </div>
 
       {/* Total Injecté */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5 flex flex-col gap-2">
+        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium">
           <PiggyBank size={16} />
-          Total Injecté
+          {t.metrics.totalInvested}
         </div>
-        <div className="text-2xl font-bold text-gray-900">{formatEur(totalDeposited)}</div>
-        <div className="text-xs text-gray-400">Virements depuis votre banque</div>
+        <div className="text-2xl font-bold text-gray-900 dark:text-gray-50">{formatEur(totalDeposited)}</div>
       </div>
 
       {/* Plus-Value Globale */}
       <div
         className={`rounded-2xl border shadow-sm p-5 flex flex-col gap-2 ${
           isPositive
-            ? 'bg-emerald-50 border-emerald-100'
-            : 'bg-red-50 border-red-100'
+            ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30'
+            : 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30'
         }`}
       >
         <div
           className={`flex items-center gap-2 text-sm font-medium ${
-            isPositive ? 'text-emerald-600' : 'text-red-600'
+            isPositive ? 'text-emerald-600 dark:text-emerald-500' : 'text-red-600 dark:text-red-500'
           }`}
         >
           {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-          Plus-Value Globale
+          {t.metrics.globalGain}
         </div>
         <div
-          className={`text-2xl font-bold ${isPositive ? 'text-emerald-700' : 'text-red-700'}`}
+          className={`text-2xl font-bold ${isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}
         >
           {formatEur(globalGainEur)}
         </div>
         <div className="flex items-center gap-3">
           <span
-            className={`text-sm font-semibold ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}
+            className={`text-sm font-semibold ${isPositive ? 'text-emerald-600 dark:text-emerald-500' : 'text-red-600 dark:text-red-500'}`}
           >
             {formatPct(globalGainPct)}
           </span>
           {irr !== null && (
-            <span className="flex items-center gap-1 text-xs text-gray-500">
+            <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
               <Percent size={12} />
-              TRI&nbsp;{irr.toFixed(1)}%
+              {t.metrics.irr}: {irr.toFixed(1)}%
             </span>
           )}
         </div>
@@ -102,4 +101,3 @@ export function MetricsHeader({
     </div>
   )
 }
-

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, Loader2 } from 'lucide-react'
+import { useLanguage } from './LanguageProvider'
 
 type SearchResult = {
   ticker: string
@@ -24,6 +25,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export function SearchBar({ onSelect }: Props) {
+  const { t } = useLanguage()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -56,7 +58,6 @@ export function SearchBar({ onSelect }: Props) {
     fetchResults(debouncedQuery)
   }, [debouncedQuery, fetchResults])
 
-  // Fermer le dropdown si clic extérieur
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -76,7 +77,7 @@ export function SearchBar({ onSelect }: Props) {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-lg">
-      <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition">
+      <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition">
         {loading ? (
           <Loader2 size={18} className="text-blue-500 animate-spin shrink-0" />
         ) : (
@@ -86,23 +87,23 @@ export function SearchBar({ onSelect }: Props) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder='Rechercher un ETF ou une action... (ex: "S&P 500", "LVMH", "ESE.PA")'
-          className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 bg-transparent"
+          placeholder={t.watchlist.searchPlaceholder}
+          className="flex-1 outline-none text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent"
           onFocus={() => results.length > 0 && setOpen(true)}
         />
       </div>
 
       {open && results.length > 0 && (
-        <ul className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden">
+        <ul className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-xl overflow-hidden divide-y divide-gray-50 dark:divide-gray-800/50">
           {results.map((r) => (
             <li key={r.ticker}>
               <button
-                className="w-full text-left px-4 py-3 hover:bg-blue-50 transition flex items-center gap-3"
+                className="w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-800 transition flex items-center gap-3"
                 onClick={() => handleSelect(r)}
               >
                 <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-semibold text-gray-900 truncate">{r.name}</span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{r.name}</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
                     {r.ticker} · {r.exchange} · {r.quoteType}
                   </span>
                 </div>
@@ -114,4 +115,3 @@ export function SearchBar({ onSelect }: Props) {
     </div>
   )
 }
-

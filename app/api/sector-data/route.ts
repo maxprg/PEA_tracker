@@ -11,13 +11,30 @@ export async function POST(request: Request) {
     const results = await Promise.allSettled(
       tickers.map(async (ticker: string) => {
         try {
-          const summary = await yf.quoteSummary(ticker, { modules: ['assetProfile', 'summaryDetail'] })
-          const profile = summary?.assetProfile
+          // On demande assetProfile (actions) ET fundProfile (ETFs) ET price (pour identifier le type)
+          const summary = await yf.quoteSummary(ticker, { modules: ['assetProfile', 'fundProfile', 'price'] })
+          const quoteType = summary?.price?.quoteType
+          const isETF = quoteType === 'ETF' || quoteType === 'MUTUALFUND'
+          
+          let sector = summary?.assetProfile?.sector
+          let country = summary?.assetProfile?.country
+          let industry = summary?.assetProfile?.industry
+
+          // Si c'est un ETF ou un fonds, les données sectorielles classiques sont souvent vides
+          if (isETF || summary?.fundProfile) {
+            sector = summary?.fundProfile?.categoryName || 'ETF / Fonds Diversifié'
+            industry = summary?.fundProfile?.familyName || 'Fonds'
+            country = summary?.fundProfile?.categoryName?.includes('Europe') ? 'Europe' 
+                    : summary?.fundProfile?.categoryName?.includes('US') ? 'États-Unis'
+                    : summary?.fundProfile?.categoryName?.includes('World') || summary?.fundProfile?.categoryName?.includes('Global') ? 'Monde'
+                    : 'Diversifié'
+          }
+
           return {
             ticker,
-            sector: profile?.sector ?? 'Autre',
-            industry: profile?.industry ?? 'Autre',
-            country: profile?.country ?? 'Inconnu',
+            sector: sector || 'Autre',
+            industry: industry || 'Autre',
+            country: country || 'Inconnu',
           }
         } catch {
           return { ticker, sector: 'Autre', industry: 'Autre', country: 'Inconnu' }
@@ -28,7 +45,11 @@ export async function POST(request: Request) {
     const data: Record<string, { sector: string; industry: string; country: string }> = {}
     results.forEach((r) => {
       if (r.status === 'fulfilled') {
-        data[r.value.ticker] = { sector: r.value.sector, industry: r.value.industry, country: r.value.country }
+        data[r.value.ticker] = {
+          sector: r.value.sector,
+          industry: r.value.industry,
+          country: r.value.country,
+        }
       }
     })
 
