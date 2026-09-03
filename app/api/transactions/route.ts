@@ -12,16 +12,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Champs manquants' }, { status: 400 })
     }
 
-    const db = getDb()
+    const db = await getDb()
     const id = randomUUID()
 
-    db.prepare(
-      `INSERT INTO transactions (id, asset_id, type, shares_count, unit_price, fee, total_cost, date)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(id, asset_id, type, shares_count, unit_price, fee ?? 0, total_cost, date)
+    await db.execute({
+      sql: `INSERT INTO transactions (id, asset_id, type, shares_count, unit_price, fee, total_cost, date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [id, asset_id, type, shares_count, unit_price, fee ?? 0, total_cost, date]
+    });
 
-    const created = db.prepare('SELECT * FROM transactions WHERE id = ?').get(id)
-    return NextResponse.json(created)
+    const createdResult = await db.execute({
+      sql: 'SELECT * FROM transactions WHERE id = ?',
+      args: [id]
+    });
+    return NextResponse.json(createdResult.rows[0])
   } catch (err: any) {
     console.error('[/api/transactions POST]', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
@@ -35,9 +39,12 @@ export async function DELETE(request: Request) {
     const id = searchParams.get('id')
     if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 })
 
-    const db = getDb()
-    const result = db.prepare('DELETE FROM transactions WHERE id = ?').run(id)
-    if (result.changes === 0) {
+    const db = await getDb()
+    const result = await db.execute({
+      sql: 'DELETE FROM transactions WHERE id = ?',
+      args: [id]
+    });
+    if (result.rowsAffected === 0) {
       return NextResponse.json({ error: 'Transaction introuvable' }, { status: 404 })
     }
     return NextResponse.json({ deleted: id })
