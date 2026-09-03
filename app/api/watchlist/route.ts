@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/sqlite'
 import { randomUUID } from 'crypto'

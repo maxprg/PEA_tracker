@@ -11,7 +11,7 @@ out/
 .env.*.local
 
 # SQLite database (données locales, ne pas versionner)
-data/
+/data/
 
 # Misc
 .DS_Store
