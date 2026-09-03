@@ -10,6 +10,9 @@ export type HoldingMetrics = {
   assetId: string
   ticker: string
   name: string
+  category: string
+  custom_sector?: string | null
+  custom_region?: string | null
   shares: number
   pru: number            // Prix de revient unitaire (weighted avg cost)
   currentPrice: number
@@ -61,6 +64,9 @@ export type AssetHolding = {
   assetId: string
   ticker: string
   name: string
+  category: string
+  custom_sector?: string | null
+  custom_region?: string | null
   shares: number
   totalCostBasis: number // Σ(shares_count * unit_price + fee) for BUY positions
 }
@@ -70,7 +76,7 @@ export type AssetHolding = {
  */
 export function computeHoldings(
   transactions: Transaction[],
-  assetMap: Record<string, { ticker: string; name: string }>
+  assetMap: Record<string, { ticker: string; name: string; category?: string; custom_sector?: string | null; custom_region?: string | null }>
 ): AssetHolding[] {
   const holdingsMap: Record<string, { shares: number; costBasis: number }> = {}
 
@@ -84,20 +90,21 @@ export function computeHoldings(
       h.costBasis += tx.shares_count * tx.unit_price + tx.fee
       h.shares += tx.shares_count
     } else if (tx.type === 'SELL') {
-      // Reduce shares proportionally, cost basis shrinks by PRU * sold shares
       const pru = h.shares > 0 ? h.costBasis / h.shares : 0
       h.costBasis -= pru * tx.shares_count
       h.shares -= tx.shares_count
     }
-    // DIVIDEND doesn't change position
   }
 
   return Object.entries(holdingsMap)
-    .filter(([, h]) => h.shares > 0.0001) // ignore fully sold positions
+    .filter(([, h]) => h.shares > 0.0001)
     .map(([assetId, h]) => ({
       assetId,
       ticker: assetMap[assetId]?.ticker ?? assetId,
       name: assetMap[assetId]?.name ?? assetId,
+      category: assetMap[assetId]?.category ?? 'Action/ETF',
+      custom_sector: assetMap[assetId]?.custom_sector,
+      custom_region: assetMap[assetId]?.custom_region,
       shares: h.shares,
       totalCostBasis: h.costBasis,
     }))
@@ -140,6 +147,9 @@ export function computeHoldingMetrics(
       assetId: h.assetId,
       ticker: h.ticker,
       name: h.name,
+      category: h.category,
+      custom_sector: h.custom_sector,
+      custom_region: h.custom_region,
       shares: h.shares,
       pru,
       currentPrice,

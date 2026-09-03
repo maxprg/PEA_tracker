@@ -77,6 +77,12 @@ export async function getDb() {
     } catch {
       // Column already exists — ignore
     }
+    try {
+      await db.execute('ALTER TABLE assets ADD COLUMN custom_sector TEXT;');
+    } catch {}
+    try {
+      await db.execute('ALTER TABLE assets ADD COLUMN custom_region TEXT;');
+    } catch {}
     initialized = true;
   }
   return db;

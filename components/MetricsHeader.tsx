@@ -27,14 +27,14 @@ export function MetricsHeader({
   const isPositive = globalGainEur >= 0
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {/* Valeur Totale PEA */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium">
           <BarChart3 size={16} />
           {t.metrics.totalValue}
         </div>
-        <div className="text-2xl font-bold text-gray-900 dark:text-gray-50">{formatEur(totalPEAValue)}</div>
+        <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-50">{formatEur(totalPEAValue)}</div>
       </div>
 
       {/* Solde Espèces */}
@@ -51,7 +51,7 @@ export function MetricsHeader({
             + {t.metrics.deposit} / {t.metrics.withdraw}
           </button>
         </div>
-        <div className="text-2xl font-bold text-gray-900 dark:text-gray-50">{formatEur(cashBalance)}</div>
+        <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-50">{formatEur(cashBalance)}</div>
       </div>
 
       {/* Total Injecté */}
@@ -60,7 +60,7 @@ export function MetricsHeader({
           <PiggyBank size={16} />
           {t.metrics.totalInvested}
         </div>
-        <div className="text-2xl font-bold text-gray-900 dark:text-gray-50">{formatEur(totalDeposited)}</div>
+        <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-50">{formatEur(totalDeposited)}</div>
       </div>
 
       {/* Plus-Value Globale */}
@@ -80,7 +80,7 @@ export function MetricsHeader({
           {t.metrics.globalGain}
         </div>
         <div
-          className={`text-2xl font-bold ${isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}
+          className={`text-lg sm:text-2xl font-bold ${isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}
         >
           {formatEur(globalGainEur)}
         </div>

@@ -127,21 +127,22 @@ export function GestionSuivi({ cashFlows, transactions, assets, totalDeposited, 
   )
   const totalBuys = Object.values(buysByAsset).reduce((a, b) => a + b, 0)
 
-  function buildPieData(keyFn: (ticker: string) => string) {
+  function buildPieData(keyFn: (a: Asset) => string) {
     const map: Record<string, number> = {}
     assets.forEach((a) => {
-      const key = keyFn(a.ticker) || 'Autre'
-      const pct = totalBuys > 0 ? (buysByAsset[a.id] / totalBuys) * 100 : 0
+      const key = keyFn(a) || 'Autre'
+      const pct = totalBuys > 0 ? ((buysByAsset[a.id] || 0) / totalBuys) * 100 : 0
       map[key] = (map[key] ?? 0) + pct
     })
     return Object.entries(map)
-      .filter(([, v]) => v > 0.5)
+      .filter(([, v]) => v > 0.1)
       .map(([name, value]) => ({ name, value: Math.round(value * 10) / 10 }))
       .sort((a, b) => b.value - a.value)
   }
 
-  const sectorPieData = buildPieData((t) => sectorData[t]?.sector ?? 'N/A')
-  const countryPieData = buildPieData((t) => sectorData[t]?.country ?? 'N/A')
+  const sectorPieData = buildPieData((a) => a.custom_sector || sectorData[a.ticker]?.sector || 'Autre')
+  const countryPieData = buildPieData((a) => a.custom_region || sectorData[a.ticker]?.country || 'Autre')
+  const strategyPieData = buildPieData((a) => a.category || 'Action/ETF')
 
   // Handlers
   async function handleDeleteFlow(id: string) {
@@ -358,16 +359,38 @@ export function GestionSuivi({ cashFlows, transactions, assets, totalDeposited, 
                 <span className="text-sm">{t.gestion.loadingSectors}</span>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Secteur */}
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2"><PieIcon size={15} /> {t.gestion.bySector}</h4>
-                  {sectorPieData.length === 0 ? (
-                    <p className="text-gray-400 dark:text-gray-500 text-sm">{t.gestion.noSectorData}</p>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Stratégie */}
+                <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-sm">
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center justify-center gap-2">
+                    <PieIcon size={15} /> Stratégie (Actions vs ETF)
+                  </h4>
+                  {strategyPieData.length === 0 ? (
+                    <p className="text-center text-gray-400 dark:text-gray-500 text-sm">Données non disponibles.</p>
                   ) : (
-                    <ResponsiveContainer width="100%" height={260}>
+                    <ResponsiveContainer width="100%" height={220}>
                       <PieChart>
-                        <Pie data={sectorPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" paddingAngle={2} stroke="none">
+                        <Pie data={strategyPieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={2} stroke="none">
+                          {strategyPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[(i + 2) % PIE_COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip content={<PieTooltip />} />
+                        <Legend formatter={(v) => <span className="text-xs text-gray-600 dark:text-gray-400">{v}</span>} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                {/* Secteur */}
+                <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-sm">
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center justify-center gap-2">
+                    <PieIcon size={15} /> {t.gestion.bySector}
+                  </h4>
+                  {sectorPieData.length === 0 ? (
+                    <p className="text-center text-gray-400 dark:text-gray-500 text-sm">{t.gestion.noSectorData}</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <PieChart>
+                        <Pie data={sectorPieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={2} stroke="none">
                           {sectorPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                         </Pie>
                         <Tooltip content={<PieTooltip />} />
@@ -378,14 +401,16 @@ export function GestionSuivi({ cashFlows, transactions, assets, totalDeposited, 
                 </div>
 
                 {/* Pays */}
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2"><PieIcon size={15} /> {t.gestion.byCountry}</h4>
+                <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-sm">
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center justify-center gap-2">
+                    <PieIcon size={15} /> {t.gestion.byCountry}
+                  </h4>
                   {countryPieData.length === 0 ? (
-                    <p className="text-gray-400 dark:text-gray-500 text-sm">{t.gestion.noCountryData}</p>
+                    <p className="text-center text-gray-400 dark:text-gray-500 text-sm">{t.gestion.noCountryData}</p>
                   ) : (
-                    <ResponsiveContainer width="100%" height={260}>
+                    <ResponsiveContainer width="100%" height={220}>
                       <PieChart>
-                        <Pie data={countryPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" paddingAngle={2} stroke="none">
+                        <Pie data={countryPieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={2} stroke="none">
                           {countryPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[(i + 5) % PIE_COLORS.length]} />)}
                         </Pie>
                         <Tooltip content={<PieTooltip />} />

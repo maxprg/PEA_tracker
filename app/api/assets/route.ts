@@ -37,16 +37,32 @@ export async function POST(request: Request) {
   }
 }
 
-// PATCH /api/assets — met à jour les notes d'un actif
+// PATCH /api/assets — met à jour un actif
 export async function PATCH(request: Request) {
   try {
-    const { id, notes } = await request.json()
+    const body = await request.json()
+    const { id } = body
     if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 })
+
+    const updateFields = ['notes', 'custom_sector', 'custom_region']
+    const setClauses: string[] = []
+    const args: any[] = []
+
+    for (const field of updateFields) {
+      if (body[field] !== undefined) {
+        setClauses.push(`${field} = ?`)
+        args.push(body[field] ?? null)
+      }
+    }
+
+    if (setClauses.length === 0) {
+      return NextResponse.json({ error: 'Aucune donnée à mettre à jour' }, { status: 400 })
+    }
 
     const db = await getDb()
     await db.execute({
-      sql: 'UPDATE assets SET notes = ? WHERE id = ?',
-      args: [notes ?? null, id]
+      sql: `UPDATE assets SET ${setClauses.join(', ')} WHERE id = ?`,
+      args: [...args, id]
     });
 
     const updatedResult = await db.execute({

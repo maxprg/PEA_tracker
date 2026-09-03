@@ -293,6 +293,7 @@ export default function HomePage() {
         holding={detailsHolding}
         transactions={transactions}
         onClose={() => setDetailsHolding(null)}
+        onUpdate={loadData}
       />
       <PriceChartModal
         holding={chartHolding}

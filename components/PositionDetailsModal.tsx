@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 import { X, TrendingUp, TrendingDown } from 'lucide-react'
 import { HoldingMetrics, formatEur } from '@/lib/finance'
 import { Transaction } from '@/lib/db'
@@ -10,9 +12,10 @@ type Props = {
   holding: HoldingMetrics | null
   transactions: Transaction[]
   onClose: () => void
+  onUpdate: () => void
 }
 
-export function PositionDetailsModal({ holding, transactions, onClose }: Props) {
+export function PositionDetailsModal({ holding, transactions, onClose, onUpdate }: Props) {
   const { t } = useLanguage()
   
   if (!holding) return null
@@ -31,6 +34,28 @@ export function PositionDetailsModal({ holding, transactions, onClose }: Props) 
   const buyTxs = assetTxs.filter((t) => t.type === 'BUY')
   const totalInvested = buyTxs.reduce((acc, t) => acc + t.total_cost, 0)
   const isPositive = holding.latentGainEur >= 0
+
+  const [isEditingClass, setIsEditingClass] = useState(false)
+  const [customSector, setCustomSector] = useState(holding.custom_sector || '')
+  const [customRegion, setCustomRegion] = useState(holding.custom_region || '')
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleSaveClassification = async () => {
+    setIsSaving(true)
+    try {
+      const { updateAsset } = await import('@/lib/db')
+      await updateAsset(holding.assetId, { 
+        custom_sector: customSector || null, 
+        custom_region: customRegion || null 
+      })
+      onUpdate()
+      setIsEditingClass(false)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm p-4">
@@ -85,7 +110,7 @@ export function PositionDetailsModal({ holding, transactions, onClose }: Props) 
         </div>
 
         {/* Barre de synthèse */}
-        <div className="px-6 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+        <div className="px-6 py-3 border-b border-gray-100 dark:border-gray-800 flex flex-wrap items-center justify-between text-sm text-gray-600 dark:text-gray-400 gap-2">
           <span>
             {t.positionModal.totalInvested} : <span className="font-semibold text-gray-900 dark:text-gray-100">{formatEur(totalInvested)}</span>
           </span>
@@ -95,6 +120,57 @@ export function PositionDetailsModal({ holding, transactions, onClose }: Props) 
           <span>
             {assetTxs.length} {t.positionModal.transactions}
           </span>
+        </div>
+
+        {/* Classification Personnalisée */}
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Classification de l'actif</h3>
+            <button 
+              onClick={() => setIsEditingClass(!isEditingClass)}
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {isEditingClass ? t.common.cancel : 'Modifier'}
+            </button>
+          </div>
+          
+          {isEditingClass ? (
+            <div className="flex flex-col sm:flex-row items-end gap-3 mt-3">
+              <div className="flex-1 w-full">
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Région personnalisée</label>
+                <input 
+                  type="text" 
+                  value={customRegion} 
+                  onChange={e => setCustomRegion(e.target.value)} 
+                  placeholder="Ex: États-Unis, Monde, Europe..."
+                  className="w-full text-sm px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div className="flex-1 w-full">
+                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Secteur personnalisé</label>
+                <input 
+                  type="text" 
+                  value={customSector} 
+                  onChange={e => setCustomSector(e.target.value)} 
+                  placeholder="Ex: Technologie, S&P 500..."
+                  className="w-full text-sm px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <button 
+                onClick={handleSaveClassification}
+                disabled={isSaving}
+                className="w-full sm:w-auto px-4 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium rounded-xl hover:bg-gray-800 dark:hover:bg-white transition disabled:opacity-50"
+              >
+                {isSaving ? t.common.loading : t.common.save}
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+              <div><span className="text-gray-400 dark:text-gray-500">Région :</span> {holding.custom_region ? <span className="font-medium text-blue-600 dark:text-blue-400">{holding.custom_region}</span> : 'Auto'}</div>
+              <div><span className="text-gray-400 dark:text-gray-500">Secteur :</span> {holding.custom_sector ? <span className="font-medium text-blue-600 dark:text-blue-400">{holding.custom_sector}</span> : 'Auto'}</div>
+              <div><span className="text-gray-400 dark:text-gray-500">Type :</span> {holding.category}</div>
+            </div>
+          )}
         </div>
 
         {/* Liste des transactions */}

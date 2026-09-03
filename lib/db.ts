@@ -7,6 +7,8 @@ export type Asset = {
   isin: string | null
   category: string
   notes?: string | null
+  custom_sector?: string | null
+  custom_region?: string | null
   created_at: string
 }
 
@@ -87,11 +89,11 @@ export async function upsertAsset(
   return res.json()
 }
 
-export async function updateAssetNotes(id: string, notes: string): Promise<Asset> {
+export async function updateAsset(id: string, updates: Partial<Asset>): Promise<Asset> {
   const res = await fetch('/api/assets', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, notes }),
+    body: JSON.stringify({ id, ...updates }),
   })
   if (!res.ok) throw new Error(await res.text())
   return res.json()

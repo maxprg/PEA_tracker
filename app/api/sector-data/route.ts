@@ -8,9 +8,29 @@ export async function POST(request: Request) {
     const { default: YF } = await import('yahoo-finance2') as any
     const yf = new YF({ suppressNotices: ['yahooSurvey'] })
 
+    const SMART_MAP: Record<string, { sector: string; country: string }> = {
+      'CW8.PA': { sector: 'Monde', country: 'Monde' },
+      'EWLD.PA': { sector: 'Monde', country: 'Monde' },
+      'PE500.PA': { sector: 'S&P 500', country: 'États-Unis' },
+      'ESE.PA': { sector: 'S&P 500', country: 'États-Unis' },
+      'PSP5.PA': { sector: 'S&P 500', country: 'États-Unis' },
+      'PAE.PA': { sector: 'Europe', country: 'Europe' },
+      'PUST.PA': { sector: 'Tech', country: 'États-Unis' },
+      'PAASI.PA': { sector: 'Marchés Émergents', country: 'Émergents' },
+    }
+
     const results = await Promise.allSettled(
       tickers.map(async (ticker: string) => {
         try {
+          if (SMART_MAP[ticker]) {
+            return {
+              ticker,
+              sector: SMART_MAP[ticker].sector,
+              industry: 'Fonds',
+              country: SMART_MAP[ticker].country,
+            }
+          }
+
           // On demande assetProfile (actions) ET fundProfile (ETFs) ET price (pour identifier le type)
           const summary = await yf.quoteSummary(ticker, { modules: ['assetProfile', 'fundProfile', 'price'] })
           const quoteType = summary?.price?.quoteType
