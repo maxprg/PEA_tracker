@@ -189,49 +189,52 @@ export function PositionDetailsModal({ holding, transactions, onClose, onUpdate 
               return (
                 <div
                   key={tx.id}
-                  className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl px-4 py-3 transition border border-transparent dark:border-gray-800"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl px-4 py-3 transition border border-transparent dark:border-gray-800"
                 >
-                  {/* Date */}
-                  <div className="text-xs text-gray-500 dark:text-gray-400 w-20 shrink-0">
-                    {new Date(tx.date).toLocaleDateString(t === require('@/lib/i18n/dictionaries').en ? 'en-US' : 'fr-FR', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
+                  <div className="flex items-center justify-between sm:w-32 shrink-0">
+                    {/* Date */}
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {new Date(tx.date).toLocaleDateString(t === require('@/lib/i18n/dictionaries').en ? 'en-US' : 'fr-FR', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </div>
+                    {/* Badge type */}
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${meta.color}`}>
+                      {meta.label}
+                    </span>
                   </div>
 
-                  {/* Badge type */}
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${meta.color}`}>
-                    {meta.label}
-                  </span>
-
-                  {/* Détails */}
-                  <div className="flex-1 grid grid-cols-3 gap-2 text-sm">
-                    <div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500">{t.common.shares}</div>
-                      <div className="font-mono font-semibold text-gray-900 dark:text-gray-100">
-                        {isBuy ? '+' : '-'}{tx.shares_count.toFixed(4)}
+                  <div className="flex flex-row items-center justify-between flex-1 gap-4">
+                    {/* Détails */}
+                    <div className="flex-1 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                      <div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500">{t.common.shares}</div>
+                        <div className="font-mono font-semibold text-gray-900 dark:text-gray-100">
+                          {isBuy ? '+' : '-'}{tx.shares_count.toFixed(4)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500">{t.common.price}</div>
+                        <div className="font-semibold text-gray-900 dark:text-gray-100">{formatEur(tx.unit_price)}</div>
+                      </div>
+                      <div className="hidden md:block">
+                        <div className="text-xs text-gray-400 dark:text-gray-500">{t.common.fees}</div>
+                        <div className="text-gray-600 dark:text-gray-400">{formatEur(tx.fee)}</div>
                       </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500">{t.common.price}</div>
-                      <div className="font-semibold text-gray-900 dark:text-gray-100">{formatEur(tx.unit_price)}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500">{t.common.fees}</div>
-                      <div className="text-gray-600 dark:text-gray-400">{formatEur(tx.fee)}</div>
-                    </div>
-                  </div>
 
-                  {/* Total */}
-                  <div className="text-right shrink-0">
-                    <div className="text-xs text-gray-400 dark:text-gray-500">{t.common.total}</div>
-                    <div
-                      className={`font-bold ${
-                        isBuy ? 'text-gray-900 dark:text-gray-100' : 'text-emerald-600 dark:text-emerald-500'
-                      }`}
-                    >
-                      {isBuy ? '-' : '+'}{formatEur(tx.total_cost)}
+                    {/* Total */}
+                    <div className="text-right shrink-0">
+                      <div className="text-xs text-gray-400 dark:text-gray-500">{t.common.total}</div>
+                      <div
+                        className={`font-bold ${
+                          isBuy ? 'text-gray-900 dark:text-gray-100' : 'text-emerald-600 dark:text-emerald-500'
+                        }`}
+                      >
+                        {isBuy ? '-' : '+'}{formatEur(tx.total_cost)}
+                      </div>
                     </div>
                   </div>
                 </div>

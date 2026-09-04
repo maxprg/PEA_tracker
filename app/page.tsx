@@ -24,7 +24,7 @@ import { PriceChartModal } from '@/components/PriceChartModal'
 import { GestionSuivi } from '@/components/GestionSuivi'
 import { SimulationModal } from '@/components/SimulationModal'
 import { WatchlistTab } from '@/components/WatchlistTab'
-import { RefreshCw, TrendingUp } from 'lucide-react'
+import { RefreshCw, TrendingUp, Briefcase, PieChart, Bookmark } from 'lucide-react'
 import { useLanguage } from '@/components/LanguageProvider'
 import { ThemeLanguageToggle } from '@/components/ThemeLanguageToggle'
 
@@ -157,32 +157,40 @@ export default function HomePage() {
       
       {/* ── Header ── */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-4">
-          <span className="text-xl font-bold shrink-0">📈 {t.header.title}</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-0 min-h-[4rem] flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-between">
+          <div className="flex items-center justify-between w-full sm:w-auto">
+            <span className="text-xl font-bold shrink-0">📈 {t.header.title}</span>
+            {/* Toggles & Simulation (Mobile) */}
+            <div className="flex sm:hidden items-center gap-3 shrink-0">
+              <ThemeLanguageToggle />
+            </div>
+          </div>
 
           {/* Tabs */}
-          <nav className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mx-auto overflow-x-auto">
+          <nav className="flex w-full sm:w-auto items-center gap-1 bg-gray-100/80 dark:bg-gray-800/80 p-1.5 rounded-2xl mx-auto backdrop-blur-md">
             {([
-              { key: 'portefeuille', label: t.header.portfolio },
-              { key: 'gestion', label: t.header.management },
-              { key: 'watchlist', label: `👁 ${t.header.watchlist}` },
-            ] as const).map(({ key, label }) => (
+              { key: 'portefeuille', label: t.header.portfolio, icon: Briefcase },
+              { key: 'gestion', label: t.header.management, icon: PieChart },
+              { key: 'watchlist', label: t.header.watchlist, icon: Bookmark },
+            ] as const).map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition whitespace-nowrap ${
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                   activeTab === key 
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' 
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-gray-200/50 dark:ring-gray-600/50' 
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/50 dark:hover:bg-gray-700/50'
                 }`}
               >
-                {label}
+                <Icon size={16} className={activeTab === key ? 'text-blue-600 dark:text-blue-400' : 'opacity-70'} />
+                <span className="hidden sm:inline">{label}</span>
+                <span className="sm:hidden text-xs">{label.split(' & ')[0]}</span>
               </button>
             ))}
           </nav>
 
-          {/* Toggles & Simulation */}
-          <div className="flex items-center gap-3 shrink-0">
+          {/* Toggles & Simulation (Desktop) */}
+          <div className="hidden sm:flex items-center gap-3 shrink-0">
             <ThemeLanguageToggle />
             
             <button

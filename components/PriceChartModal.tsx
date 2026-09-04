@@ -336,7 +336,7 @@ export function PriceChartModal({ holding, transactions, onClose }: Props) {
         </div>
 
         {/* Footer stats */}
-        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 grid grid-cols-4 gap-4 text-sm">
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
           <div><div className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{t.positionModal.sharesHeld}</div><div className="font-semibold text-gray-900 dark:text-gray-100">{holding.shares.toFixed(4)}</div></div>
           <div><div className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{t.positionModal.avgPRU}</div><div className="font-semibold text-gray-900 dark:text-gray-100">{formatEur(holding.pru)}</div></div>
           <div><div className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{t.positionModal.currentValue}</div><div className="font-semibold text-gray-900 dark:text-gray-100">{formatEur(holding.lineValue)}</div></div>

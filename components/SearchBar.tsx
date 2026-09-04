@@ -88,7 +88,7 @@ export function SearchBar({ onSelect }: Props) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t.watchlist.searchPlaceholder}
-          className="flex-1 outline-none text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent"
+          className="flex-1 outline-none text-base md:text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent"
           onFocus={() => results.length > 0 && setOpen(true)}
         />
       </div>
